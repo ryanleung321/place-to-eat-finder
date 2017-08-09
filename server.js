@@ -3,9 +3,11 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const request = require('request');
+const fetch = require('node-fetch');
 const app = express();
 const callbackToken = process.env.VERIFY_TOKEN || 'devToken';
 const pageAccessToken = process.env.PAGE_ACCESS_TOKEN || "EAAEayvkpajwBAHbbWc3zieawFpIUHwYTIZBz0qQUwuUmhNXZALpULz6Gr4Ei5zqIqSZCy0IzbTKX8TXS0Maf9luMxl5Kt2dYeecs0MwRiabsEcrmZAhoxEfpZBB4EroxmKiEnQt5ZCIg32Ss0jNS7aHU0dI1a0X2SLGwOkvNQHnQZDZD";
+const apiUrl = `https://graph.facebook.com/v2.6/me/messages?access_token=${pageAccessToken}`;
 
 app.set('port', (process.env.PORT || 5000));
 
@@ -31,40 +33,39 @@ app.get('/webhook', function (req, res) {
 
 // to post data
 app.post('/webhook', function (req, res) {
-	let messaging_events = req.body.entry[0].messaging
-	for (let i = 0; i < messaging_events.length; i++) {
-		let event = req.body.entry[0].messaging[i];
-		let sender = event.sender.id;
-		if (event.message && event.message.text) {
-			let text = event.message.text;
-			if (text === 'Generic'){ 
-				console.log("welcome to chatbot");
-				sendGenericMessage(sender);
-				continue;
-			}
-			sendTextMessage(sender, "Text received, echo: " + text.substring(0, 200));
-		}
-		if (event.postback) {
-			let text = JSON.stringify(event.postback);
-			sendTextMessage(sender, "Postback received: "+text.substring(0, 200), pageAccessToken);
-			continue;
-		}
-	}
-	res.sendStatus(200);
+  const messaging_events =
+    (req.body.entry && req.body.entry.length && req.body.entry[0] && req.body.entry[0].messaging) ?
+      req.body.entry[0].messaging : null;
+  messaging_events.forEach((event) => {
+    const sender = event && event.sender && event.sender.id;
+    if (event.message && event.message.text) {
+      let text = event.message.text;
+      if (text.toLowerCase() === 'cards') {
+        sendMessageCards(sender);
+      } else {
+        sendTextMessage(sender, "Text received, echo: " + text.substring(0, 200));
+      }
+    }
+    if (event.postback) {
+      let text = JSON.stringify(event.postback);
+      sendTextMessage(sender, "Postback received: " + text.substring(0, 200), pageAccessToken);
+    }
+  });
+  res.sendStatus(200);
 });
 
 function sendTextMessage(sender, text) {
 	let messageData = { text:text };
-	
-	request({
-		url: 'https://graph.facebook.com/v2.6/me/messages',
+
+  request({
+		url: apiUrl,
 		qs: {access_token:pageAccessToken},
 		method: 'POST',
 		json: {
 			recipient: {id:sender},
 			message: messageData,
 		}
-	}, function(error, response, body) {
+	}, (error, response, body) => {
 		if (error) {
 			console.log('Error sending messages: ', error)
 		} else if (response.body.error) {
@@ -73,7 +74,7 @@ function sendTextMessage(sender, text) {
 	})
 }
 
-function sendGenericMessage(sender) {
+function sendMessageCards(sender) {
 	let messageData = {
 		"attachment": {
 			"type": "template",
@@ -106,24 +107,29 @@ function sendGenericMessage(sender) {
 		}
 	};
 
-	request({
-		url: 'https://graph.facebook.com/v2.6/me/messages',
-		qs: {access_token:pageAccessToken},
-		method: 'POST',
-		json: {
-			recipient: {id:sender},
-			message: messageData,
-		}
-	}, function(error, response, body) {
-		if (error) {
-			console.log('Error sending messages: ', error)
-		} else if (response.body.error) {
-			console.log('Error: ', response.body.error)
-		}
-	})
+	const requestBody = JSON.stringify({
+    recipient: {
+      id: sender
+    },
+    message: messageData
+  });
+
+	fetch(apiUrl, {
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    method: 'POST',
+    body: requestBody
+  }).then((resp) => {
+	  console.log(JSON.stringify(resp));
+  });
 }
 
-// spin spin sugar
+function sendGenericErrorMessage(sender) {
+  sendTextMessage(sender, "An error occured! Sorry for the inconvenience.");
+}
+
 app.listen(app.get('port'), function() {
 	console.log('running on port', app.get('port'))
 });
