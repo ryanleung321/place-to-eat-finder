@@ -1,4 +1,5 @@
 'use strict';
+
 const fetch = require('node-fetch');
 
 const sendTextMessage = (apiUrl, sender, text) => {
@@ -11,7 +12,7 @@ const sendTextMessage = (apiUrl, sender, text) => {
     message: messageData
   });
 
-  fetch(apiUrl, {
+  return fetch(apiUrl, {
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json'
@@ -22,6 +23,7 @@ const sendTextMessage = (apiUrl, sender, text) => {
     return resp.json();
   }).then((resp) => {
     console.log(resp);
+    return resp;
   });
 };
 
@@ -65,7 +67,7 @@ const sendMessageCards = (apiUrl, sender) => {
     message: messageData
   });
 
-  fetch(apiUrl, {
+  return fetch(apiUrl, {
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json'
@@ -76,6 +78,7 @@ const sendMessageCards = (apiUrl, sender) => {
     return resp.json();
   }).then((resp) => {
     console.log(resp);
+    return resp;
   });
 };
 
@@ -83,8 +86,39 @@ const sendGenericErrorMessage = (apiUrl, sender) => {
   sendTextMessage(apiUrl, sender, "An error occured! Sorry for the inconvenience.");
 };
 
+const sendLocationRequestMessage = (apiUrl, sender) => {
+  const requestBody = JSON.stringify({
+    recipient: {
+      id: sender
+    },
+    message: {
+      text: "Just send your location and we'll find you places to eat nearby!",
+      quick_replies: [
+        {
+          content_type: "location"
+        }
+      ]
+    }
+  });
+
+  return fetch(apiUrl, {
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    method: 'POST',
+    body: requestBody
+  }).then((resp) => {
+    return resp.json();
+  }).then((resp) => {
+    console.log(resp);
+    return resp;
+  });
+};
+
 module.exports = {
   sendTextMessage,
   sendMessageCards,
   sendGenericErrorMessage,
+  sendLocationRequestMessage,
 };
