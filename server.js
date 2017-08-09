@@ -2,19 +2,31 @@
 
 const express = require('express');
 const bodyParser = require('body-parser');
-const fetch = require('node-fetch');
+const NodeCache = require('node-cache');
+const GET_STARTED_PAYLOAD = 'GET_STARTED_PAYLOAD';
+const LOCATION_ATTACHMENT_TYPE = 'location';
+
+// FB CONSTANTS
+const CALLBACK_TOKEN = process.env.FB_VERIFY_TOKEN || require('./devConstants').FB_VERIFY_TOKEN;
+const PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN || require('./devConstants').FB_PAGE_ACCESS_TOKEN;
+const MESSENGER_API_URL = `https://graph.facebook.com/v2.6/me/messages?access_token=${PAGE_ACCESS_TOKEN}`;
+
+// YELP CONSTANTS
+const YELP_CLIENT_ID = process.env.YELP_CLIENT_ID || require('./devConstants').YELP_CLIENT_ID;
+const YELP_CLIENT_SECRET = process.env.YELP_CLIENT_SECRET || require('./devConstants').YELP_CLIENT_SECRET;
+// const YELP_API_URL = (lat, long) => `https://api.yelp.com/v2/search?term=food&ll=${lat},${long}`;
+const YELP_AUTH_API = 'https://api.yelp.com/oauth2/token';
+const YELP_AUTH_GRANT_TYPE = 'client_credentials';
+
+// YELP TOKEN CACHE
+const yelpCache = new NodeCache();
+
+// HELPER METHODS
 const sendTextMessage = require('./messageUtils').sendTextMessage;
 const sendMessageCards = require('./messageUtils').sendMessageCards;
 const sendGenericErrorMessage = require('./messageUtils').sendGenericErrorMessage;
 const sendLocationRequestMessage = require('./messageUtils').sendLocationRequestMessage;
-const CALLBACK_TOKEN = process.env.FB_VERIFY_TOKEN || require('./devConstants').FB_VERIFY_TOKEN;
-const PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN || require('./devConstants').FB_PAGE_ACCESS_TOKEN;
-const API_URL = `https://graph.facebook.com/v2.6/me/messages?access_token=${PAGE_ACCESS_TOKEN}`;
-const GET_STARTED_PAYLOAD = 'GET_STARTED_PAYLOAD';
-const LOCATION_ATTACHMENT_TYPE = 'location';
-const YELP_CLIENT_ID = process.env.YELP_CLIENT_ID || require('./devConstants').YELP_CLIENT_ID;
-const YELP_CLIENT_SECRET = process.env.YELP_CLIENT_SECRET || require('./devConstants').YELP_CLIENT_SECRET;
-// const YELP_API_URL = (lat, long) => `https://api.yelp.com/v2/search?term=food&ll=${lat},${long}`;
+const getYelpAccessToken = require('./apiHelpers/yelpHelpers').getYelpAccessToken;
 
 const app = express();
 app.set('port', (process.env.PORT || 5000));
@@ -50,18 +62,18 @@ app.post('/webhook', function (req, res) {
     if (event.message && event.message.text) {
       let text = event.message.text;
       if (text.toLowerCase() === 'cards') {
-        sendMessageCards(API_URL, sender);
+        sendMessageCards(MESSENGER_API_URL, sender);
       } else if (text.toLowerCase() === 'help') {
-        sendLocationRequestMessage(API_URL, sender);
+        sendLocationRequestMessage(MESSENGER_API_URL, sender);
       } else{
-        sendTextMessage(API_URL, sender, 'Text received, echo: ' + text.substring(0, 200));
+        sendTextMessage(MESSENGER_API_URL, sender, 'Text received, echo: ' + text.substring(0, 200));
       }
     }
     if (event.postback) {
       const postbackPayload = event.postback.payload;
       if (postbackPayload === GET_STARTED_PAYLOAD) {
-        sendTextMessage(API_URL, sender, 'Sure thing!').then(() => {
-          sendLocationRequestMessage(API_URL, sender);
+        sendTextMessage(MESSENGER_API_URL, sender, 'Sure thing!').then(() => {
+          sendLocationRequestMessage(MESSENGER_API_URL, sender);
         });
       }
     }
@@ -76,13 +88,7 @@ app.post('/webhook', function (req, res) {
         const lat = userLocation.lat;
         const long = userLocation.long;
 
-        // fetch(YELP_API_URL(lat, long),  {
-        //   method: 'GET'
-        // }).then((resp) => {
-        //   return resp.json();
-        // }).then((resp) => {
-        //   console.log('$$$$$$$$$$$', JSON.stringify(resp));
-        // });
+        getYelpAccessToken(YELP_AUTH_API, yelpCache, YELP_AUTH_GRANT_TYPE, YELP_CLIENT_ID, YELP_CLIENT_SECRET);
       }
     }
   });
