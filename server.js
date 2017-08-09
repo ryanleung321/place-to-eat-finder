@@ -7,12 +7,14 @@ const sendTextMessage = require('./messageUtils').sendTextMessage;
 const sendMessageCards = require('./messageUtils').sendMessageCards;
 const sendGenericErrorMessage = require('./messageUtils').sendGenericErrorMessage;
 const sendLocationRequestMessage = require('./messageUtils').sendLocationRequestMessage;
-const CALLBACK_TOKEN = process.env.VERIFY_TOKEN || 'devToken';
-const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN || 'EAAEayvkpajwBAHbbWc3zieawFpIUHwYTIZBz0qQUwuUmhNXZALpULz6Gr4Ei5zqIqSZCy0IzbTKX8TXS0Maf9luMxl5Kt2dYeecs0MwRiabsEcrmZAhoxEfpZBB4EroxmKiEnQt5ZCIg32Ss0jNS7aHU0dI1a0X2SLGwOkvNQHnQZDZD';
+const CALLBACK_TOKEN = process.env.FB_VERIFY_TOKEN || require('./devConstants').FB_VERIFY_TOKEN;
+const PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN || require('./devConstants').FB_PAGE_ACCESS_TOKEN;
 const API_URL = `https://graph.facebook.com/v2.6/me/messages?access_token=${PAGE_ACCESS_TOKEN}`;
 const GET_STARTED_PAYLOAD = 'GET_STARTED_PAYLOAD';
 const LOCATION_ATTACHMENT_TYPE = 'location';
-const YELP_API_URL = (lat, long) => `https://api.yelp.com/v2/search?term=food&ll=${lat},${long}`;
+const YELP_CLIENT_ID = process.env.YELP_CLIENT_ID || require('./devConstants').YELP_CLIENT_ID;
+const YELP_CLIENT_SECRET = process.env.YELP_CLIENT_SECRET || require('./devConstants').YELP_CLIENT_SECRET;
+// const YELP_API_URL = (lat, long) => `https://api.yelp.com/v2/search?term=food&ll=${lat},${long}`;
 
 const app = express();
 app.set('port', (process.env.PORT || 5000));
@@ -74,13 +76,13 @@ app.post('/webhook', function (req, res) {
         const lat = userLocation.lat;
         const long = userLocation.long;
 
-        fetch(YELP_API_URL(lat, long),  {
-          method: 'GET'
-        }).then((resp) => {
-          return resp.json();
-        }).then((resp) => {
-          console.log('$$$$$$$$$$$', JSON.stringify(resp));
-        })
+        // fetch(YELP_API_URL(lat, long),  {
+        //   method: 'GET'
+        // }).then((resp) => {
+        //   return resp.json();
+        // }).then((resp) => {
+        //   console.log('$$$$$$$$$$$', JSON.stringify(resp));
+        // });
       }
     }
   });
