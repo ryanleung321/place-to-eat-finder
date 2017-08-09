@@ -57,21 +57,25 @@ app.post('/webhook', function (req, res) {
 function sendTextMessage(sender, text) {
 	let messageData = { text:text };
 
-  request({
-		url: apiUrl,
-		qs: {access_token:pageAccessToken},
-		method: 'POST',
-		json: {
-			recipient: {id:sender},
-			message: messageData,
-		}
-	}, (error, response, body) => {
-		if (error) {
-			console.log('Error sending messages: ', error)
-		} else if (response.body.error) {
-			console.log('Error: ', response.body.error)
-		}
-	})
+  const requestBody = JSON.stringify({
+    recipient: {
+      id: sender
+    },
+    message: messageData
+  });
+
+  fetch(apiUrl, {
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    method: 'POST',
+    body: requestBody
+  }).then((resp) => {
+    return resp.json();
+  }).then((resp) => {
+    console.log(resp);
+  });
 }
 
 function sendMessageCards(sender) {
@@ -122,8 +126,10 @@ function sendMessageCards(sender) {
     method: 'POST',
     body: requestBody
   }).then((resp) => {
-	  console.log(JSON.stringify(resp));
-  });
+    return resp.json();
+  }).then((resp) => {
+    console.log(resp);
+	});
 }
 
 function sendGenericErrorMessage(sender) {
