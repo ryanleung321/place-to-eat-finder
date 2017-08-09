@@ -28,8 +28,8 @@ const getYelpAccessToken = (authUrl, cache, grantType, clientId, clientSecret) =
 };
 
 const getYelpLLSearchResults = (lat, long, apiUrl, authUrl, cache, grantType, clientId, clientSecret) => {
-  getYelpAccessToken(authUrl, cache, grantType, clientId, clientSecret).then((yelpAccessToken) => {
-    const queryString = `?latitude=${lat}&longitude=${long}`;
+  return getYelpAccessToken(authUrl, cache, grantType, clientId, clientSecret).then((yelpAccessToken) => {
+    const queryString = `?term=food&latitude=${lat}&longitude=${long}`;
 
     return fetch(`${apiUrl}${queryString}`, {
       headers: {
@@ -41,8 +41,7 @@ const getYelpLLSearchResults = (lat, long, apiUrl, authUrl, cache, grantType, cl
     }).then((resp) => {
       return resp.json();
     }).then((resp) => {
-      console.log(resp);
-      return resp;
+      return resp.businesses;
     });
   });
 };
