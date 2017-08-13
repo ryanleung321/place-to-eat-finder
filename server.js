@@ -3,49 +3,57 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const NodeCache = require('node-cache');
+const Wit = require('node-wit');
 const GET_STARTED_PAYLOAD = 'GET_STARTED_PAYLOAD';
 const SHOW_MORE_PAYLOAD = 'SHOW_MORE';
 const LOCATION_ATTACHMENT_TYPE = 'location';
 
+// devConstants folder that should contain your own api keys
+const devConstants = require('./devConstants');
+
 // FB CONSTANTS
-const CALLBACK_TOKEN = process.env.FB_VERIFY_TOKEN || require('./devConstants').FB_VERIFY_TOKEN;
-const PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN || require('./devConstants').FB_PAGE_ACCESS_TOKEN;
+const CALLBACK_TOKEN = process.env.FB_VERIFY_TOKEN || devConstants.FB_VERIFY_TOKEN;
+const PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN || devConstants.FB_PAGE_ACCESS_TOKEN;
 const MESSENGER_API_URL = `https://graph.facebook.com/v2.6/me/messages?access_token=${PAGE_ACCESS_TOKEN}`;
 
 // YELP CONSTANTS
-const YELP_CLIENT_ID = process.env.YELP_CLIENT_ID || require('./devConstants').YELP_CLIENT_ID;
-const YELP_CLIENT_SECRET = process.env.YELP_CLIENT_SECRET || require('./devConstants').YELP_CLIENT_SECRET;
+const YELP_CLIENT_ID = process.env.YELP_CLIENT_ID || devConstants.YELP_CLIENT_ID;
+const YELP_CLIENT_SECRET = process.env.YELP_CLIENT_SECRET || devConstants.YELP_CLIENT_SECRET;
 const YELP_API_URL = 'https://api.yelp.com/v3/businesses/search';
 const YELP_AUTH_API = 'https://api.yelp.com/oauth2/token';
 const YELP_AUTH_GRANT_TYPE = 'client_credentials';
 
-// YELP TOKEN CACHE
+// YELP TOKEN CACHE (used for saving Yelp Auth Token)
 const yelpCache = new NodeCache();
+
+// USER DATA CACHE
 const userCache = new NodeCache();
 
 // HELPER METHODS
-const sendTextMessage = require('./messageUtils').sendTextMessage;
-const sendBusinessCards = require('./messageUtils').sendBusinessCards;
-const sendGenericErrorMessage = require('./messageUtils').sendGenericErrorMessage;
-const sendLocationRequestMessage = require('./messageUtils').sendLocationRequestMessage;
-const getYelpLLSearchResults = require('./apiHelpers/yelpHelpers').getYelpLLSearchResults;
-const businessResolver = require('./dataResolvers').businessResolver;
+const {
+  sendTextMessage,
+  sendBusinessCards,
+  sendGenericErrorMessage,
+  sendLocationRequestMessage,
+} = require('./messageUtils');
+
+const { getYelpLLSearchResults } = require('./apiHelpers/yelpHelpers');
+const { businessResolver } = require('./dataResolvers');
 
 const app = express();
 app.set('port', (process.env.PORT || 5000));
 
-// parse application/x-www-form-urlencoded
+// Parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({extended: false}));
 
-// parse application/json
+// Parse application/json
 app.use(bodyParser.json());
 
-// index
 app.get('/', function (req, res) {
 	res.send('hello there');
 });
 
-// for facebook verification
+// For facebook verification
 app.get('/webhook', function (req, res) {
 	if (req.query['hub.verify_token'] === CALLBACK_TOKEN) {
 		res.status(200).send(req.query['hub.challenge']);
@@ -54,7 +62,7 @@ app.get('/webhook', function (req, res) {
 	}
 });
 
-// to post data
+// To post data
 app.post('/webhook', function (req, res) {
   const messaging_events =
     (req.body.entry && req.body.entry.length && req.body.entry[0] && req.body.entry[0].messaging) ?
@@ -62,6 +70,8 @@ app.post('/webhook', function (req, res) {
 
   messaging_events && messaging_events.forEach((event) => {
     const sender = event && event.sender && event.sender.id;
+
+    // Handle text messages
     if (event.message && event.message.text) {
       let text = event.message.text;
       if (text.toLowerCase() === 'cards') {
@@ -72,6 +82,8 @@ app.post('/webhook', function (req, res) {
         sendTextMessage(MESSENGER_API_URL, sender, 'Text received, echo: ' + text.substring(0, 200));
       }
     }
+
+    // Handle a postback (button click)
     if (event.postback) {
       const postbackPayload = event.postback.payload;
       if (postbackPayload === GET_STARTED_PAYLOAD) {
@@ -79,6 +91,8 @@ app.post('/webhook', function (req, res) {
           sendLocationRequestMessage(MESSENGER_API_URL, sender);
         });
       } else if (postbackPayload === SHOW_MORE_PAYLOAD) {
+
+        // Show the next 3 businesses from the results
         userCache.get(sender, (err, value) => {
           if (!err && value) {
             const businesses = value.businesses;
@@ -118,6 +132,7 @@ app.post('/webhook', function (req, res) {
           return attachment.type === LOCATION_ATTACHMENT_TYPE;
         }) : [];
 
+      // Display 3 businesses for the user to view
       if (locations.length) {
         const userLocation = locations[0] && locations[0].payload && locations[0].payload.coordinates;
         const lat = userLocation.lat;
@@ -132,6 +147,8 @@ app.post('/webhook', function (req, res) {
           YELP_AUTH_GRANT_TYPE,
           YELP_CLIENT_ID,
           YELP_CLIENT_SECRET).then((businesses) => {
+
+          // Save Yelp results for the user
           userCache.set(sender, {
             businesses,
             index: 0,

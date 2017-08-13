@@ -3,6 +3,7 @@
 const fetch = require('node-fetch');
 const YELP_CACHE_KEY = 'yelp';
 
+// Retrieves the Yelp Access Token either from Auth api (if expired) or from cache
 const getYelpAccessToken = (authUrl, cache, grantType, clientId, clientSecret) => {
   cache.get(YELP_CACHE_KEY, (err, value) => {
     if (!err && value) {
@@ -27,6 +28,7 @@ const getYelpAccessToken = (authUrl, cache, grantType, clientId, clientSecret) =
   });
 };
 
+// Get Yelp search results based on latitude and longitude
 const getYelpLLSearchResults = (lat, long, apiUrl, authUrl, cache, grantType, clientId, clientSecret) => {
   return getYelpAccessToken(authUrl, cache, grantType, clientId, clientSecret).then((yelpAccessToken) => {
     const queryString = `?term=food&latitude=${lat}&longitude=${long}`;
