@@ -11,7 +11,7 @@ const devConstants = require('./devConstants');
 // FB CONSTANTS
 const WIT_AI_ACCESS_TOKEN = process.env.WIT_AI_ACCESS_TOKEN || devConstants.WIT_AI_ACCESS_TOKEN;
 
-const { getYelpLLSearchResults } = require('./ApiHelpers/yelpHelpers');
+const { getYelpSearchResults } = require('./ApiHelpers/yelpHelpers');
 const { businessResolver } = require('./dataResolvers');
 
 // USER DATA CACHE
@@ -70,10 +70,16 @@ const handleLocationMessage = (sender, locations) => {
   // Display 3 businesses for the user to view
   if (locations.length) {
     const userLocation = locations[0] && locations[0].payload && locations[0].payload.coordinates;
-    const lat = userLocation.lat;
-    const long = userLocation.long;
+    const latitude = userLocation.lat;
+    const longitude = userLocation.long;
 
-    getYelpLLSearchResults(lat, long).then((businesses) => {
+    const params = {
+      term: 'food',
+      latitude,
+      longitude,
+    };
+
+    getYelpSearchResults(params).then((businesses) => {
       if (!(businesses && businesses.length)) {
         sendTextMessage(sender, 'Sorry but no places to eat where found near you.');
       } else {

@@ -46,7 +46,7 @@ const getYelpAccessToken = () => {
 };
 
 // Get Yelp search results based on latitude and longitude
-const getYelpLLSearchResults = (latitude, longitude) => {
+const getYelpSearchResults = (params) => {
   return getYelpAccessToken().then((yelpAccessToken) => {
     const config = {
       url: YELP_API_URL,
@@ -56,11 +56,7 @@ const getYelpLLSearchResults = (latitude, longitude) => {
         'Authorization': `Bearer ${yelpAccessToken}`
       },
       method: 'get',
-      params: {
-        term: 'food',
-        latitude: latitude,
-        longitude: longitude
-      }
+      params,
     };
 
     return network.call(config).then((resp) => {
@@ -73,5 +69,5 @@ const getYelpLLSearchResults = (latitude, longitude) => {
 
 module.exports = {
   getYelpAccessToken,
-  getYelpLLSearchResults,
+  getYelpSearchResults,
 };
