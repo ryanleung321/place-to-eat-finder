@@ -30,7 +30,7 @@ const sendTextMessage = (sender, text) => {
   };
 
   return network.call(config).then((resp) => {
-    console.log(resp);
+    console.log(resp.data);
     return resp;
   }, (err) => {
     console.log(err);
@@ -66,7 +66,7 @@ const sendBusinessCards = (sender, restaurants) => {
   };
 
   return network.call(config).then((resp) => {
-    console.log(resp);
+    console.log(resp.data);
     return resp;
   }, (err) => {
     console.log(err);
@@ -103,7 +103,7 @@ const sendLocationRequestMessage = (sender) => {
   };
 
   return network.call(config).then((resp) => {
-    console.log(resp);
+    console.log(resp.data);
     return resp;
   }, (err) => {
     console.log(err);

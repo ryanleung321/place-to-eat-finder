@@ -99,7 +99,7 @@ const handleLocationMessage = (sender, locations) => {
       }
     });
   }
-}
+};
 
 const handleTextMessage = (sender, text) => {
   witClient.message(text, {}).then((resp) => {
@@ -109,13 +109,52 @@ const handleTextMessage = (sender, text) => {
     } else {
       const entityData = resp.entities;
       if (entityData.help) {
+        // Send a request for a location
         sendLocationRequestMessage(sender);
-      } else if (entityData.location) {
-        if (!(entityData.sort.length && entityData.sort[0].value)) {
-          sendGenericErrorMessage(sender);
+      } else if (entityData.location
+        && entityData.location[0]
+        && entityData.location[0].value) {
+
+        let params = {
+          term: 'food',
+          location: entityData.location[0].value
+        };
+
+        // Add sort type to params if sort type was present in the message
+        if (entityData.sort
+          && entityData.sort.length
+          && entityData.sort[0]
+          && entityData.sort[0].value) {
+
+          params['sort_by'] = entityData.sort[0].value;
         }
+
+        getYelpSearchResults(params).then((businesses) => {
+          if (!(businesses && businesses.length)) {
+            sendTextMessage(sender, 'Sorry but no places to eat where found near you.');
+          } else {
+            // Save Yelp results for the user
+            userCache.set(sender, {
+              businesses,
+              index: 0,
+            });
+
+            let cardData = businesses.slice(0, 3).map(businessResolver);
+
+            if (businesses.length > 3) {
+              cardData = appendShowMoreCard(cardData, businesses[3].image_url);
+            }
+
+            sendBusinessCards(sender, cardData);
+          }
+        });
       } else if (entityData.sort) {
-        sendTextMessage(sender, 'I need a location before I can find you places to eat.');
+        // Handle a message with a sort value but no location
+        const NO_LOCATION_TEXT = 'I need a location before I can find you places to eat.';
+
+        sendTextMessage(sender, NO_LOCATION_TEXT).then(() => {
+          sendLocationRequestMessage(sender);
+        });
       } else {
         sendGenericErrorMessage(sender);
       }
