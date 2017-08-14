@@ -1,6 +1,6 @@
 'use strict';
 
-const fetch = require('node-fetch');
+const network = require('./network');
 const SHOW_MORE_PAYLOAD = 'SHOW_MORE';
 
 // devConstants folder that should contain your own api keys
@@ -10,7 +10,7 @@ const PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN || devConstants.FB_PA
 const MESSENGER_API_URL = `https://graph.facebook.com/v2.6/me/messages?access_token=${PAGE_ACCESS_TOKEN}`;
 
 const sendTextMessage = (sender, text) => {
-  let messageData = { text:text };
+  let messageData = { text: text };
 
   const requestBody = JSON.stringify({
     recipient: {
@@ -19,18 +19,21 @@ const sendTextMessage = (sender, text) => {
     message: messageData
   });
 
-  return fetch(MESSENGER_API_URL, {
+  const config = {
+    url: MESSENGER_API_URL,
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json'
     },
     method: 'POST',
-    body: requestBody
-  }).then((resp) => {
-    return resp.json();
-  }).then((resp) => {
+    data: requestBody
+  };
+
+  return network.call(config).then((resp) => {
     console.log(resp);
     return resp;
+  }, (err) => {
+    console.log(err);
   });
 };
 
@@ -52,18 +55,21 @@ const sendBusinessCards = (sender, restaurants) => {
     message: messageData
   });
 
-  return fetch(MESSENGER_API_URL, {
+  const config = {
+    url: MESSENGER_API_URL,
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json'
     },
     method: 'POST',
-    body: requestBody
-  }).then((resp) => {
-    return resp.json();
-  }).then((resp) => {
+    data: requestBody
+  };
+
+  return network.call(config).then((resp) => {
     console.log(resp);
     return resp;
+  }, (err) => {
+    console.log(err);
   });
 };
 
@@ -86,18 +92,21 @@ const sendLocationRequestMessage = (sender) => {
     }
   });
 
-  return fetch(MESSENGER_API_URL, {
+  const config = {
+    url: MESSENGER_API_URL,
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json'
     },
     method: 'POST',
-    body: requestBody
-  }).then((resp) => {
-    return resp.json();
-  }).then((resp) => {
+    data: requestBody
+  };
+
+  return network.call(config).then((resp) => {
     console.log(resp);
     return resp;
+  }, (err) => {
+    console.log(err);
   });
 };
 

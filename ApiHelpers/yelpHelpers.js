@@ -1,7 +1,6 @@
 'use strict';
 
 const NodeCache = require('node-cache');
-const fetch = require('node-fetch');
 const network = require('./network');
 const YELP_CACHE_KEY = 'yelp';
 
@@ -42,7 +41,7 @@ const getYelpAccessToken = () => {
     yelpCache.set(YELP_CACHE_KEY, resp.data.access_token, resp.data.expires_in);
     return resp.data.access_token;
   }, (err) => {
-    console.log(JSON.stringify(err, null, 2));
+    console.log(err);
   });
 };
 
@@ -67,7 +66,7 @@ const getYelpLLSearchResults = (latitude, longitude) => {
     return network.call(config).then((resp) => {
       return resp.data.businesses;
     }, (err) => {
-      console.log(JSON.stringify(err, null, 2));
+      console.log(err);
     });
   });
 };
