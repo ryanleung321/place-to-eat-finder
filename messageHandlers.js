@@ -6,7 +6,7 @@ const SHOW_MORE_PAYLOAD = 'SHOW_MORE';
 const { Wit, log } = require('node-wit');
 
 // FB CONSTANTS
-const WIT_AI_ACCESS_TOKEN = process.env.WIT_AI_ACCESS_TOKEN || require('../devConstants').WIT_AI_ACCESS_TOKEN;
+const WIT_AI_ACCESS_TOKEN = process.env.WIT_AI_ACCESS_TOKEN || require('./devConstants').WIT_AI_ACCESS_TOKEN;
 
 const { getYelpSearchResults } = require('./ApiHelpers/yelpHelpers');
 const { businessResolver } = require('./dataResolvers');

@@ -6,7 +6,7 @@ const GET_STARTED_PAYLOAD = 'GET_STARTED_PAYLOAD';
 const LOCATION_ATTACHMENT_TYPE = 'location';
 
 // FB CONSTANTS
-const CALLBACK_TOKEN = process.env.FB_VERIFY_TOKEN || require('../devConstants').FB_VERIFY_TOKEN;
+const CALLBACK_TOKEN = process.env.FB_VERIFY_TOKEN || require('./devConstants').FB_VERIFY_TOKEN;
 
 const {
   handleLocationMessage,
