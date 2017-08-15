@@ -34,6 +34,7 @@ const {
   sendBusinessCards,
   sendGenericErrorMessage,
   sendLocationRequestMessage,
+  sendGreetingMessage,
 } = require('./ApiHelpers/messageUtils');
 
 const handlePostbackMessage = (sender, postbackPayload) => {
@@ -113,6 +114,8 @@ const handleTextMessage = (sender, text) => {
       if (entityData.help) {
         // Send a request for a location
         sendLocationRequestMessage(sender);
+      } else if (entityData.greetings) {
+        sendGreetingMessage(sender);
       } else if (entityData.location
         && entityData.location[0]
         && entityData.location[0].value) {

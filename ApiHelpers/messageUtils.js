@@ -143,10 +143,19 @@ const appendShowMoreCard = (cardData, imageUrl) => {
   return cardData;
 };
 
+const sendGreetingMessage = (sender) => {
+  return sendTextMessage(sender, 'Hi there!').then(() => {
+    sendTextMessage(sender, 'I can find you places to eat nearby.').then(() => {
+      sendLocationRequestMessage(sender);
+    });
+  })
+};
+
 module.exports = {
   appendShowMoreCard,
   sendTextMessage,
   sendBusinessCards,
   sendGenericErrorMessage,
   sendLocationRequestMessage,
+  sendGreetingMessage,
 };
