@@ -106,7 +106,6 @@ const handleLocationMessage = (sender, locations) => {
 
 const handleTextMessage = (sender, text) => {
   witClient.message(text, {}).then((resp) => {
-    console.log('!!!!!!!!!!!', JSON.stringify(resp));
     if (!(resp && resp.entities)) {
       sendGenericErrorMessage(sender);
     } else {
