@@ -3,10 +3,7 @@
 const network = require('./network');
 const SHOW_MORE_PAYLOAD = 'SHOW_MORE';
 
-// devConstants folder that should contain your own api keys
-const devConstants = require('../devConstants');
-
-const PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN || devConstants.FB_PAGE_ACCESS_TOKEN;
+const PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN || require('../devConstants').FB_PAGE_ACCESS_TOKEN;
 const MESSENGER_API_URL = `https://graph.facebook.com/v2.6/me/messages?access_token=${PAGE_ACCESS_TOKEN}`;
 
 const CONFIRMATION_MESSAGES = [

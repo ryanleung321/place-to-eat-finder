@@ -5,11 +5,8 @@ const GET_STARTED_PAYLOAD = 'GET_STARTED_PAYLOAD';
 const SHOW_MORE_PAYLOAD = 'SHOW_MORE';
 const { Wit, log } = require('node-wit');
 
-// devConstants folder that should contain your own api keys
-const devConstants = require('./devConstants');
-
 // FB CONSTANTS
-const WIT_AI_ACCESS_TOKEN = process.env.WIT_AI_ACCESS_TOKEN || devConstants.WIT_AI_ACCESS_TOKEN;
+const WIT_AI_ACCESS_TOKEN = process.env.WIT_AI_ACCESS_TOKEN || require('../devConstants').WIT_AI_ACCESS_TOKEN;
 
 const { getYelpSearchResults } = require('./ApiHelpers/yelpHelpers');
 const { businessResolver } = require('./dataResolvers');

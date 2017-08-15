@@ -5,11 +5,8 @@ const bodyParser = require('body-parser');
 const GET_STARTED_PAYLOAD = 'GET_STARTED_PAYLOAD';
 const LOCATION_ATTACHMENT_TYPE = 'location';
 
-// devConstants folder that should contain your own api keys
-const devConstants = require('./devConstants');
-
 // FB CONSTANTS
-const CALLBACK_TOKEN = process.env.FB_VERIFY_TOKEN || devConstants.FB_VERIFY_TOKEN;
+const CALLBACK_TOKEN = process.env.FB_VERIFY_TOKEN || require('../devConstants').FB_VERIFY_TOKEN;
 
 const {
   handleLocationMessage,

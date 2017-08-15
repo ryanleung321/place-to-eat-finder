@@ -4,12 +4,9 @@ const NodeCache = require('node-cache');
 const network = require('./network');
 const YELP_CACHE_KEY = 'yelp';
 
-// devConstants folder that should contain your own api keys
-const devConstants = require('../devConstants');
-
 // YELP API CONSTANTS
-const YELP_CLIENT_ID = process.env.YELP_CLIENT_ID || devConstants.YELP_CLIENT_ID;
-const YELP_CLIENT_SECRET = process.env.YELP_CLIENT_SECRET || devConstants.YELP_CLIENT_SECRET;
+const YELP_CLIENT_ID = process.env.YELP_CLIENT_ID || require('../devConstants').YELP_CLIENT_ID;
+const YELP_CLIENT_SECRET = process.env.YELP_CLIENT_SECRET || require('../devConstants').YELP_CLIENT_SECRET;
 const YELP_API_URL = 'https://api.yelp.com/v3/businesses/search';
 const YELP_AUTH_API = 'https://api.yelp.com/oauth2/token';
 const YELP_AUTH_GRANT_TYPE = 'client_credentials';
