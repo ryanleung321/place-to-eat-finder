@@ -129,6 +129,15 @@ const handleTextMessage = (sender, text) => {
           params['sort_by'] = entityData.sort[0].value;
         }
 
+        // Add price range to params if price was present in the message
+        if (entityData.price
+          && entityData.price.length
+          && entityData.price[0]
+          && entityData.price[0].value) {
+
+          params['price'] = entityData.price[0].value;
+        }
+
         getYelpSearchResults(params).then((businesses) => {
           if (!(businesses && businesses.length)) {
             sendTextMessage(sender, 'Sorry but no places to eat where found near you.');
@@ -148,7 +157,7 @@ const handleTextMessage = (sender, text) => {
             sendBusinessCards(sender, cardData);
           }
         });
-      } else if (entityData.sort) {
+      } else if (entityData.sort || entityData.price) {
         // Handle a message with a sort value but no location
         const NO_LOCATION_TEXT = 'I need a location before I can find you places to eat.';
 
