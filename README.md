@@ -1,7 +1,8 @@
 # place to eat finder
 
 ## Dev Constants
-should look like this: 
+should look like this:
+```
 'use strict';
 
 const YELP_CLIENT_ID = 'INSERT_HERE';
@@ -17,3 +18,4 @@ module.exports = {
   YELP_CLIENT_SECRET,
   WIT_AI_ACCESS_TOKEN,
 };
+```
