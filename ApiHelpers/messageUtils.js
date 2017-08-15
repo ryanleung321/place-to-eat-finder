@@ -9,6 +9,15 @@ const devConstants = require('../devConstants');
 const PAGE_ACCESS_TOKEN = process.env.FB_PAGE_ACCESS_TOKEN || devConstants.FB_PAGE_ACCESS_TOKEN;
 const MESSENGER_API_URL = `https://graph.facebook.com/v2.6/me/messages?access_token=${PAGE_ACCESS_TOKEN}`;
 
+const CONFIRMATION_MESSAGES = [
+  'Sure thing!',
+  'No problem!',
+  'Here you go!',
+  'Absolutely!',
+  'Your wish is my command!',
+  'Destroy all humans!'
+];
+
 const sendTextMessage = (sender, text) => {
   let messageData = { text: text };
 
@@ -65,12 +74,17 @@ const sendBusinessCards = (sender, restaurants) => {
     data: requestBody
   };
 
-  return network.call(config).then((resp) => {
-    console.log(resp.data);
-    return resp;
-  }, (err) => {
-    console.log(err);
-  });
+  const confirmationIndex = Math.floor(Math.random() * CONFIRMATION_MESSAGES.length);
+  const confirmationMessage = CONFIRMATION_MESSAGES[confirmationIndex];
+
+  return sendTextMessage(sender, confirmationMessage).then(() => {
+    network.call(config).then((resp) => {
+      console.log(resp.data);
+      return resp;
+    }, (err) => {
+      console.log(err);
+    });
+  })
 };
 
 const sendGenericErrorMessage = (sender) => {

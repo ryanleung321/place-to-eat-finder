@@ -87,6 +87,8 @@ const handleLocationMessage = (sender, locations) => {
         userCache.set(sender, {
           businesses,
           index: 0,
+          latitude,
+          longitude,
         });
 
         let cardData = businesses.slice(0, 3).map(businessResolver);
@@ -146,6 +148,7 @@ const handleTextMessage = (sender, text) => {
             userCache.set(sender, {
               businesses,
               index: 0,
+              location: params.location,
             });
 
             let cardData = businesses.slice(0, 3).map(businessResolver);
@@ -159,15 +162,80 @@ const handleTextMessage = (sender, text) => {
         });
       } else if (entityData.sort || entityData.price) {
         // Handle a message with a sort value but no location
-        const NO_LOCATION_TEXT = 'I need a location before I can find you places to eat.';
+        userCache.get(sender, (err, value) => {
+          let params = {
+            term: 'food',
+          };
 
-        sendTextMessage(sender, NO_LOCATION_TEXT).then(() => {
-          sendLocationRequestMessage(sender);
+          if (!err && value) {
+            if (value.location) {
+              params['location'] = value.location;
+            } else if (value.latitude && value.longitude) {
+              params['latitude'] = value.latitude;
+              params['longitude'] = value.longitude;
+            } else {
+              // Let the user know that no location was given previously
+              return sendNoLocationMessage(sender);
+            }
+
+            // Add sort type to params if sort type was present in the message
+            if (entityData.sort
+              && entityData.sort.length
+              && entityData.sort[0]
+              && entityData.sort[0].value) {
+
+              params['sort_by'] = entityData.sort[0].value;
+            }
+
+            // Add price range to params if price was present in the message
+            if (entityData.price
+              && entityData.price.length
+              && entityData.price[0]
+              && entityData.price[0].value) {
+
+              params['price'] = entityData.price[0].value;
+            }
+
+            getYelpSearchResults(params).then((businesses) => {
+              if (!(businesses && businesses.length)) {
+                sendTextMessage(sender, 'Sorry but no places to eat were found near you.');
+              } else {
+                // Save Yelp results for the user
+                userCache.set(sender, {
+                  businesses,
+                  index: 0,
+                  latitude: params.latitude ? params.latitude : null,
+                  longitude: params.longitude ? params.longitude : null,
+                  location: params.location ? params.location : null,
+                });
+
+                let cardData = businesses.slice(0, 3).map(businessResolver);
+
+                if (businesses.length > 3) {
+                  cardData = appendShowMoreCard(cardData, businesses[3].image_url);
+                }
+
+                sendBusinessCards(sender, cardData);
+              }
+            });
+          } else {
+            // Let the user know that no location was given previously
+            return sendNoLocationMessage(sender);
+          }
+
         });
       } else {
         sendGenericErrorMessage(sender);
       }
     }
+  });
+};
+
+const sendNoLocationMessage = (sender) => {
+  const NO_LOCATION_TEXT = 'I need a location before I can find you places to eat.';
+
+  sendTextMessage(sender, NO_LOCATION_TEXT).then(() => {
+    sendLocationRequestMessage(sender);
   });
 };
 
