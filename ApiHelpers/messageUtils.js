@@ -16,6 +16,8 @@ const CONFIRMATION_MESSAGES = [
 ];
 
 const sendTextMessage = (sender, text) => {
+  console.log('Function: sendTextMessage');
+
   let messageData = { text: text };
 
   const requestBody = JSON.stringify({
@@ -36,14 +38,16 @@ const sendTextMessage = (sender, text) => {
   };
 
   return network.call(config).then((resp) => {
-    console.log(resp.data);
+    console.log('response: ', resp.data);
     return resp;
   }, (err) => {
-    console.log(err);
+    console.log('error: ', err);
   });
 };
 
 const sendBusinessCards = (sender, restaurants) => {
+  console.log('Function: sendBusinessCards');
+
   let messageData = {
     "attachment": {
       "type": "template",
@@ -76,25 +80,29 @@ const sendBusinessCards = (sender, restaurants) => {
 
   return sendTextMessage(sender, confirmationMessage).then(() => {
     network.call(config).then((resp) => {
-      console.log(resp.data);
+      console.log('response: ', resp.data);
       return resp;
     }, (err) => {
-      console.log(err);
+      console.log('error: ', err);
     });
   })
 };
 
 const sendGenericErrorMessage = (sender) => {
+  console.log('Function: sendGenericErrorMessage');
+
   sendTextMessage(sender, "Sorry, I'm not quite sure what to make of that...");
 };
 
-const sendLocationRequestMessage = (sender) => {
+const sendLocationRequestMessage = (sender, text) => {
+  console.log('Function: sendLocationRequestMessage');
+
   const requestBody = JSON.stringify({
     recipient: {
       id: sender
     },
     message: {
-      text: "Just send your location and we'll find you places to eat nearby!",
+      text,
       quick_replies: [
         {
           content_type: "location"
@@ -114,14 +122,16 @@ const sendLocationRequestMessage = (sender) => {
   };
 
   return network.call(config).then((resp) => {
-    console.log(resp.data);
+    console.log('response: ', resp.data);
     return resp;
   }, (err) => {
-    console.log(err);
+    console.log('error: ', err);
   });
 };
 
 const appendShowMoreCard = (cardData, imageUrl) => {
+  console.log('Function: appendShowMoreCard');
+
   cardData.push({
     "title": 'More Businesses',
     "subtitle": 'Show the next 3 businesses',
@@ -141,8 +151,10 @@ const appendShowMoreCard = (cardData, imageUrl) => {
 };
 
 const sendGreetingMessage = (sender) => {
+  console.log('Function: sendGreetingMessage');
+
   return sendTextMessage(sender, 'Hi there!').then(() => {
-    return sendLocationRequestMessage(sender);
+    return sendTextMessage(sender, 'How can I help you?');
   });
 };
 

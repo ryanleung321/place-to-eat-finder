@@ -1,6 +1,8 @@
 'use strict';
 
 const businessResolver = (business) => {
+  console.log('Function: businessResolver');
+
   if (!business) return null;
 
   const titleRating = business.rating ? `${business.rating}/5` : '';
