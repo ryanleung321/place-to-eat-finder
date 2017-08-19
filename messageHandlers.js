@@ -29,6 +29,9 @@ const SORT_DEFUALT = 'best_match';
 const SORT_DISTANCE = 'distance';
 const SORT_RATING = 'rating';
 
+// PROMPTS
+const showMorePrompt = 'Would you like me to show more?';
+
 const {
   appendShowMoreCard,
   sendTextMessage,
@@ -78,6 +81,36 @@ const getUserTimezoneOffset = (sender) => {
   });
 };
 
+const handleShowMore = (sender) => {
+  // Show the next 3 businesses from the results
+  userCache.get(sender, (err, value) => {
+    if (!err && value) {
+      const businesses = value.businesses;
+      const businessStartIndex = value.index + 3;
+      const businessEndIndex = businessStartIndex + 3;
+      let cardData = businesses.slice(businessStartIndex, businessEndIndex).map(businessResolver);
+
+      if (businesses.length - businessEndIndex > 0) {
+        cardData = appendShowMoreCard(cardData,  businesses[businessEndIndex].image_url);
+      }
+
+      userCache.set(sender, {
+        businesses,
+        index: businessStartIndex,
+        latitude: value.latitude ? value.latitude : null,
+        longitude: value.longitude ? value.longitude : null,
+        location: value.location ? value.location : null,
+      });
+
+      sendBusinessCards(sender, cardData).then(() => {
+        if (businesses.length - businessEndIndex > 0) {
+          sendTextMessage(sender, showMorePrompt);
+        }
+      });
+    }
+  });
+};
+
 const handlePostbackMessage = (sender, postbackPayload) => {
   console.log('Function: handlePostbackMessage');
 
@@ -87,30 +120,7 @@ const handlePostbackMessage = (sender, postbackPayload) => {
       sendLocationRequestMessage(sender, locationMessage);
     });
   } else if (postbackPayload === SHOW_MORE_PAYLOAD) {
-
-    // Show the next 3 businesses from the results
-    userCache.get(sender, (err, value) => {
-      if (!err && value) {
-        const businesses = value.businesses;
-        const businessStartIndex = value.index + 3;
-        const businessEndIndex = businessStartIndex + 3;
-        let cardData = businesses.slice(businessStartIndex, businessEndIndex).map(businessResolver);
-
-        if (businesses.length - businessEndIndex > 0) {
-          cardData = appendShowMoreCard(cardData,  businesses[businessEndIndex].image_url);
-        }
-
-        userCache.set(sender, {
-          businesses,
-          index: businessStartIndex,
-          latitude: value.latitude ? value.latitude : null,
-          longitude: value.longitude ? value.longitude : null,
-          location: value.location ? value.location : null,
-        });
-
-        sendBusinessCards(sender, cardData);
-      }
-    });
+    handleShowMore(sender);
   }
 };
 
@@ -148,7 +158,11 @@ const handleLocationMessage = (sender, locations) => {
           cardData = appendShowMoreCard(cardData, businesses[3].image_url);
         }
 
-        sendBusinessCards(sender, cardData);
+        sendBusinessCards(sender, cardData).then(() => {
+          if (businesses.length > 3) {
+            sendTextMessage(sender, showMorePrompt);
+          }
+        });
       }
     });
   }
@@ -170,6 +184,15 @@ const handleTextMessage = (sender, text) => {
           sendLocationRequestMessage(sender, locationMessage);
         } else if (entityData.greetings) {
           sendGreetingMessage(sender);
+        } else if (entityData.more
+          && entityData.more[0]
+          && entityData.more[0].value
+          && !entityData.price) {
+          if (entityData.more[0].value === 'true') {
+            handleShowMore(sender);
+          } else {
+            sendTextMessage(sender, 'Alright, just let me know if you change your mind!');
+          }
         } else if (entityData.location
           && entityData.location[0]
           && entityData.location[0].value) {
@@ -179,6 +202,15 @@ const handleTextMessage = (sender, text) => {
             open_now: true,
             location: entityData.location[0].value,
           };
+
+          // Swap term in params if term was present in the message
+          if (entityData.term
+            && entityData.term.length
+            && entityData.term[0]
+            && entityData.term[0].value) {
+
+            params.term = entityData.term[0].value;
+          }
 
           // Add sort type to params if sort type was present in the message
           if (entityData.sort
@@ -245,11 +277,14 @@ const handleTextMessage = (sender, text) => {
                 cardData = appendShowMoreCard(cardData, businesses[3].image_url);
               }
 
-              sendBusinessCards(sender, cardData);
+              sendBusinessCards(sender, cardData).then(() => {
+                if (businesses.length > 3) {
+                  sendTextMessage(sender, showMorePrompt);
+                }
+              });
             }
           });
-        } else if (entityData.sort || entityData.price || entityData.datetime || entityData.time) {
-          console.log(entityData.datetime);
+        } else if (entityData.sort || entityData.price || entityData.datetime || entityData.time || entityData.term) {
           // Handle a message with a sort value but no location
           userCache.get(sender, (err, value) => {
             let params = {
@@ -266,6 +301,15 @@ const handleTextMessage = (sender, text) => {
               } else {
                 // Let the user know that no location was given previously
                 return sendNoLocationMessage(sender);
+              }
+
+              // Swap term in params if term was present in the message
+              if (entityData.term
+                && entityData.term.length
+                && entityData.term[0]
+                && entityData.term[0].value) {
+
+                params.term = entityData.term[0].value;
               }
 
               // Add sort type to params if sort type was present in the message
@@ -335,7 +379,11 @@ const handleTextMessage = (sender, text) => {
                     cardData = appendShowMoreCard(cardData, businesses[3].image_url);
                   }
 
-                  sendBusinessCards(sender, cardData);
+                  sendBusinessCards(sender, cardData).then(() => {
+                    if (businesses.length > 3) {
+                      sendTextMessage(sender, showMorePrompt);
+                    }
+                  });
                 }
               });
             } else {
