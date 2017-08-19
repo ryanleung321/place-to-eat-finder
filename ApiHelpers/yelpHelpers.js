@@ -16,34 +16,40 @@ const yelpCache = new NodeCache();
 
 // Retrieves the Yelp Access Token either from Auth api (if expired) or from yelpCache
 const getYelpAccessToken = () => {
-  yelpCache.get(YELP_CACHE_KEY, (err, value) => {
-    if (!err && value) {
-      return Promise.resolve(value);
-    }
-  });
+  console.log('Function: getYelpAccessToken');
 
-  const requestBody = `grant_type=${YELP_AUTH_GRANT_TYPE}&client_id=${YELP_CLIENT_ID}&client_secret=${YELP_CLIENT_SECRET}`;
+  return new Promise((resolve) => {
+    yelpCache.get(YELP_CACHE_KEY, (err, value) => {
+      if (!err && value) {
+        resolve(value);
+      } else {
+        const requestBody = `grant_type=${YELP_AUTH_GRANT_TYPE}&client_id=${YELP_CLIENT_ID}&client_secret=${YELP_CLIENT_SECRET}`;
 
-  const config = {
-    url: YELP_AUTH_API,
-    headers: {
-      'Accept': 'application/x-www-form-urlencoded',
-      'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    method: 'post',
-    data: requestBody
-  };
+        const config = {
+          url: YELP_AUTH_API,
+          headers: {
+            'Accept': 'application/x-www-form-urlencoded',
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          method: 'post',
+          data: requestBody
+        };
 
-  return network.call(config).then((resp) => {
-    yelpCache.set(YELP_CACHE_KEY, resp.data.access_token, resp.data.expires_in);
-    return resp.data.access_token;
-  }, (err) => {
-    console.log(err);
+        network.call(config).then((resp) => {
+          yelpCache.set(YELP_CACHE_KEY, resp.data.access_token, resp.data.expires_in);
+          resolve(resp.data.access_token);
+        }, (err) => {
+          console.log('error: ', err);
+        });
+      }
+    });
   });
 };
 
 // Get Yelp search results based on latitude and longitude
 const getYelpSearchResults = (params) => {
+  console.log('Function: getYelpSearchResults');
+
   return getYelpAccessToken().then((yelpAccessToken) => {
     const config = {
       url: YELP_API_URL,
@@ -59,7 +65,7 @@ const getYelpSearchResults = (params) => {
     return network.call(config).then((resp) => {
       return resp.data.businesses;
     }, (err) => {
-      console.log(err);
+      console.log('error: ', err);
     });
   });
 };
