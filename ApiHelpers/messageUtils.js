@@ -12,7 +12,6 @@ const CONFIRMATION_MESSAGES = [
   'Here you go!',
   'Absolutely!',
   'Your wish is my command!',
-  'Destroy all humans!'
 ];
 
 const sendTextMessage = (sender, text) => {

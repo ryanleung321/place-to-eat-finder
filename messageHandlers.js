@@ -82,6 +82,8 @@ const getUserTimezoneOffset = (sender) => {
 };
 
 const handleShowMore = (sender) => {
+  console.log('Function: handleShowMore');
+
   // Show the next 3 businesses from the results
   userCache.get(sender, (err, value) => {
     if (!err && value) {
@@ -236,9 +238,16 @@ const handleTextMessage = (sender, text) => {
             && entityData.datetime[0]
             && entityData.datetime[0].value) {
 
-            const datetime = entityData.datetime[0].value;
-            const unixTime = new moment(datetime).utc().unix();
-            const timezoneOffset = timezone * -3600;
+            const datetime = new moment(entityData.datetime[0].value).utc();
+            const unixTime = datetime.unix();
+            var timezoneOffset = 0;
+
+            if (datetime.seconds() === 0
+              && datetime.minutes() === 0
+              && datetime.milliseconds() === 0) {
+              timezoneOffset = timezone * -3600;
+            }
+
             params.open_now = false;
             params.open_at = unixTime + timezoneOffset;
           }
@@ -336,9 +345,16 @@ const handleTextMessage = (sender, text) => {
                 && entityData.datetime[0]
                 && entityData.datetime[0].value) {
 
-                const datetime = entityData.datetime[0].value;
-                const unixTime = new moment(datetime).utc().unix();
-                const timezoneOffset = timezone * -3600;
+                const datetime = new moment(entityData.datetime[0].value).utc();
+                const unixTime = datetime.unix();
+                var timezoneOffset = 0;
+
+                if (datetime.seconds() === 0
+                  && datetime.minutes() === 0
+                  && datetime.milliseconds() === 0) {
+                  timezoneOffset = timezone * -3600;
+                }
+
                 params.open_now = false;
                 params.open_at = unixTime + timezoneOffset;
               }
