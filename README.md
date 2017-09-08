@@ -1,4 +1,6 @@
-# place to eat finder
+# Place To Eat Finder
+
+To see the bot in action, send a message to this page: https://www.facebook.com/Place-To-Eat-Finder-284885618644130/
 
 This is a Facebook Messenger chat bot that utlizes Facebook's Wit.ai for natural language processing and Yelp's search API to show users places to eat given a location. 
 
