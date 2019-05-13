@@ -1,10 +1,8 @@
 # Yelp Me Eat
 
+This is a Facebook Messenger chat bot that utlizes Facebook's Wit.ai for natural language processing and Yelp's search API to show users places to eat given a location. Users are able to filter the results by providing a desired time or date, price range, or by requesting closer businesses.
+
 To see the bot in action, send a message to this page: https://www.facebook.com/yelpmeeat/
-
-This is a Facebook Messenger chat bot that utlizes Facebook's Wit.ai for natural language processing and Yelp's search API to show users places to eat given a location. 
-
-Users are able to further filter the results by providing a desired time or date, search term, and/or a price range as well as a sorting option in order to organize the results.
 
 Use `npm start` to start the express server.
 
